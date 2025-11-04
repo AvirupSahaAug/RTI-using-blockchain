@@ -1,0 +1,40 @@
+<%- include('../../partials/header') %>
+    <h2>Officer Dashboard</h2>
+    
+    <div class="card">
+        <h3>Assigned Requests</h3>
+        <% if (requests && requests.length > 0) { %>
+            <% requests.forEach(request => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Request ID:</strong> <%= request.id %></p>
+                <p><strong>Client ID:</strong> <%= request.clientId %></p>
+                <p><strong>Description:</strong> <%= request.description %></p>
+                
+                <% if (request.requestHash) { %>
+                    <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request Document</button>
+                <% } %>
+                
+                <form id="responseForm-<%= request.id %>" action="/officer/response" enctype="multipart/form-data" style="margin-top: 1rem;">
+                    <input type="hidden" name="requestId" value="<%= request.id %>">
+                    <div class="form-group">
+                        <label>Response Document:</label>
+                        <input type="file" name="document" required>
+                    </div>
+                    <button type="button" onclick="submitResponse(<%= request.id %>)" class="btn">Submit Response</button>
+                </form>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No assigned requests.</p>
+        <% } %>
+    </div>
+    
+    <script>
+        async function submitResponse(requestId) {
+            const form = document.getElementById('responseForm-' + requestId);
+            await submitFormWithFile(form, function() {
+                location.reload();
+            });
+        }
+    </script>
+<%- include('../../partials/footer') %>

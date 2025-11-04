@@ -1,0 +1,32 @@
+=============== Nov 4, 2025 (IST) ===============
+11:30:04.450034 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+11:30:04.453781 db@open opening
+11:30:04.455924 version@stat F·[] S·0B[] Sc·[]
+11:30:04.458090 db@janitor F·2 G·0
+11:30:04.458090 db@open done T·3.793ms
+11:30:04.492211 db@close closing
+11:30:04.492211 db@close done T·0s
+=============== Nov 4, 2025 (IST) ===============
+11:30:20.440732 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+11:30:20.441262 version@stat F·[] S·0B[] Sc·[]
+11:30:20.441262 db@open opening
+11:30:20.441262 journal@recovery F·1
+11:30:20.441262 journal@recovery recovering @1
+11:30:20.443918 memdb@flush created L0@2 N·6 S·1KiB "/F5..CGI,v6":"/pi..rty,v1"
+11:30:20.444440 version@stat F·[1] S·1KiB[1KiB] Sc·[0.25]
+11:30:20.446996 db@janitor F·3 G·0
+11:30:20.446996 db@open done T·5.7342ms
+15:11:22.261886 db@close closing
+15:11:22.262667 db@close done T·781.7µs
+=============== Nov 4, 2025 (IST) ===============
+15:17:28.509609 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+15:17:28.511272 version@stat F·[1] S·1KiB[1KiB] Sc·[0.25]
+15:17:28.511272 db@open opening
+15:17:28.511272 journal@recovery F·1
+15:17:28.511799 journal@recovery recovering @3
+15:17:28.514440 memdb@flush created L0@5 N·8 S·6KiB "/F5..CGI,v11":"/re..egy,v8"
+15:17:28.514969 version@stat F·[2] S·7KiB[7KiB] Sc·[0.50]
+15:17:28.521923 db@janitor F·4 G·0
+15:17:28.521923 db@open done T·10.6511ms
+16:38:02.772021 db@close closing
+16:38:02.772546 db@close done T·1.0411ms

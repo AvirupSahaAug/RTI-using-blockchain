@@ -1,0 +1,43 @@
+{
+  "users": [
+    {
+      "id": "U-25f12eeb",
+      "name": "avirup saha",
+      "aadhaar": "1234432112344321",
+      "role": "client",
+      "signinKeyHash": "c8d22621957657bb2e3006dd48423fc69c0a4b8cb49d9c2faf05e286eb923f76"
+    },
+    {
+      "id": "U-3074b656",
+      "name": "admin",
+      "aadhaar": "4321123443211234",
+      "role": "admin",
+      "signinKeyHash": "8be4a118640363578bb6374bfb97d1be7888dda0337a2a29bad553a6468165e8"
+    },
+    {
+      "id": "U-c1adbf26",
+      "name": "officer",
+      "aadhaar": "473659653826",
+      "role": "officer",
+      "signinKeyHash": "ac876e9868d08eb6726b0a56055086a7222e509c4769d18f071c607308a2846f"
+    }
+  ],
+  "requests": [
+    {
+      "id": 1762261227504,
+      "clientId": "U-25f12eeb",
+      "description": "request",
+      "requestHash": "QmfWELk7qBjbkAJ64wXsFq3WZMHTpmS19wa4Esw68tkUA8",
+      "status": "0"
+    },
+    {
+      "id": 1762263134674,
+      "clientId": "U-25f12eeb",
+      "description": "request with new contract",
+      "requestHash": "QmQQhsV75qUtnS7RYX9wPKfQTC1RcRWGcs2hBf5NzMDi6Z",
+      "status": "2",
+      "assignedOfficerUserId": "U-c1adbf26",
+      "responseHash": "QmfWELk7qBjbkAJ64wXsFq3WZMHTpmS19wa4Esw68tkUA8"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+<%- include('../../partials/header') %>
+    <h2>Client Dashboard</h2>
+    
+    <div class="card">
+        <h3>Create New RTI Request</h3>
+        <form id="requestForm" action="/client/request" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Description:</label>
+                <textarea name="description" required placeholder="Describe your RTI request"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Document (optional):</label>
+                <input type="file" name="document">
+            </div>
+            
+            <button type="button" onclick="submitRequest()" class="btn">Submit Request</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <h3>My RTI Requests</h3>
+        <% if (requests && requests.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">ID</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Description</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Status</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% requests.forEach(request => { %>
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= request.id %></td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= request.description %></td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;">
+                            <%= 
+                                request.status === '0' ? 'Pending' :
+                                request.status === '1' ? 'Assigned' :
+                                request.status === '2' ? 'Responded' : 'Completed'
+                            %>
+                        </td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;">
+                            <% if (request.requestHash) { %>
+                                <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request</button>
+                            <% } %>
+                            <% if (request.responseHash) { %>
+                                <button onclick="downloadFile('<%= request.responseHash %>')" class="btn">Download Response</button>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p>No requests found.</p>
+        <% } %>
+    </div>
+    
+    <script>
+        async function submitRequest() {
+            const form = document.getElementById('requestForm');
+            await submitFormWithFile(form, function() {
+                form.reset();
+                location.reload();
+            });
+        }
+    </script>
+<%- include('../../partials/footer') %>

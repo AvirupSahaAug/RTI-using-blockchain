@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+    <h2>Welcome to RTI Blockchain System</h2>
+    <p>A decentralized Right to Information system using Blockchain and IPFS</p>
+    
+    <% if (!user) { %>
+        <div style="margin: 2rem 0;">
+            <a href="/login" class="btn">Login</a>
+        </div>
+    <% } else { %>
+        <div style="margin: 2rem 0;">
+            <a href="/<%= user.role %>/dashboard" class="btn">Go to Dashboard</a>
+        </div>
+    <% } %>
+    
+    <div class="card">
+        <h3>How it works:</h3>
+        <ol>
+            <li><strong>Clients</strong> upload RTI requests with documents</li>
+            <li><strong>Admins</strong> assign requests to officers</li>
+            <li><strong>Officers</strong> process requests and upload responses</li>
+            <li>All documents are stored on IPFS</li>
+            <li>All transactions are recorded on Blockchain</li>
+        </ol>
+    </div>
+<%- include('../partials/footer') %>

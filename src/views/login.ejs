@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+    <h2>Login to RTI System</h2>
+    
+    <% if (error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+    
+    <form method="POST" action="/login" class="card">
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="text" name="userId" required placeholder="U-xxxxxx">
+        </div>
+        <div class="form-group">
+            <label>Sign-in Key:</label>
+            <input type="password" name="signinKey" required placeholder="Enter your sign-in key">
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+    
+    <div class="card">
+        <h3>Heads up</h3>
+        <p>Use your app User ID and Sign-in Key to log in.</p>
+        <p>Ganache private key is entered once on server start and is used for contract signing.</p>
+    </div>
+<%- include('../partials/footer') %>

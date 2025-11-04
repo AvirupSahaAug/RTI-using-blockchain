@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+    <h2>Register</h2>
+
+    <% if (error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+        <div class="success">
+            <p>Registered successfully!</p>
+            <p><strong>Your User ID:</strong> <%= success.id %></p>
+            <p><strong>Your Sign-in Key (save this safely, shown only once):</strong></p>
+            <p style="word-break: break-all;"><%= success.signinKey %></p>
+        </div>
+    <% } %>
+
+    <form method="POST" action="/register" class="card">
+        <div class="form-group">
+            <label>Name:</label>
+            <input type="text" name="name" required placeholder="Your name">
+        </div>
+        <div class="form-group">
+            <label>Aadhaar Number:</label>
+            <input type="text" name="aadhaar" required placeholder="12-digit Aadhaar">
+        </div>
+        <div class="form-group">
+            <label>Role:</label>
+            <select name="role" required>
+                <option value="">Select Role</option>
+                <option value="client">Client</option>
+                <option value="officer">Officer</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Wallet Address (officers only):</label>
+            <input type="text" name="walletAddress" placeholder="0x...">
+        </div>
+        <button type="submit" class="btn">Register</button>
+    </form>
+<%- include('../partials/footer') %>
+

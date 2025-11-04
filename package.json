@@ -1,0 +1,29 @@
+{
+  "name": "rti-blockchain-system",
+  "version": "1.0.0",
+  "description": "Blockchain-based RTI system with IPFS",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "deploy": "node scripts/deploy-contract.js",
+    "setup": "node scripts/deploy-and-setup.js",
+    "check-env": "node scripts/check-environment.js",
+    "init-ipfs": "node scripts/init-ipfs.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "ipfs-http-client": "^49.0.0",
+    "multer": "^1.4.5-lts.1",
+    "web3": "^1.8.0"
+  },
+  "devDependencies": {
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "nodemon": "^3.0.1",
+    "truffle": "^5.11.4"
+  }
+}

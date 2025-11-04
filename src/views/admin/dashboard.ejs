@@ -1,0 +1,98 @@
+<%- include('../../partials/header') %>
+    <h2>Admin Dashboard</h2>
+    
+    
+    
+    <div class="card">
+        <h3>Pending Requests</h3>
+        <% if (pendingRequests && pendingRequests.length > 0) { %>
+            <% pendingRequests.forEach(request => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Request ID:</strong> <%= request.id %></p>
+                <p><strong>Client ID:</strong> <%= request.clientId %></p>
+                <p><strong>Description:</strong> <%= request.description %></p>
+                <% if (request.requestHash) { %>
+                    <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request</button>
+                <% } %>
+                
+                <form id="assignForm-<%= request.id %>" style="margin-top: 1rem;">
+                    <input type="hidden" name="requestId" value="<%= request.id %>">
+                    <div class="form-group">
+                        <label>Assign to Officer:</label>
+                        <select name="officerUserId" required>
+                            <option value="">Select officer</option>
+                            <% (officerUsers || []).forEach(o => { %>
+                                <option value="<%= o.id %>"><%= o.name %> (ID: <%= o.id %>)</option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <button type="button" onclick="assignRequest(<%= request.id %>)" class="btn">Assign</button>
+                </form>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No pending requests.</p>
+        <% } %>
+    </div>
+    
+    <div class="card">
+        <h3>Assigned Requests</h3>
+        <% if (assignedRequests && assignedRequests.length > 0) { %>
+            <% assignedRequests.forEach(request => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Request ID:</strong> <%= request.id %></p>
+                <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId || '—' %></p>
+                <p><strong>Description:</strong> <%= request.description %></p>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No assigned requests.</p>
+        <% } %>
+    </div>
+    
+    <div class="card">
+        <h3>Responded Requests</h3>
+        <% if (respondedRequests && respondedRequests.length > 0) { %>
+            <% respondedRequests.forEach(request => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Request ID:</strong> <%= request.id %></p>
+                <p><strong>Client ID:</strong> <%= request.clientId %></p>
+                <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId %></p>
+                <% if (request.responseHash) { %>
+                    <button onclick="downloadFile('<%= request.responseHash %>')" class="btn">Download Response</button>
+                <% } %>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No responded requests.</p>
+        <% } %>
+    </div>
+    
+    <script>
+        async function assignRequest(requestId) {
+            const form = document.getElementById('assignForm-' + requestId);
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/admin/assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        requestId: formData.get('requestId'),
+                        officerUserId: formData.get('officerUserId')
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    alert('Request assigned successfully! TX: ' + result.tx);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+<%- include('../../partials/footer') %>
