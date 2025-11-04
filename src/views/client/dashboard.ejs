@@ -44,10 +44,10 @@
                         </td>
                         <td style="border: 1px solid #ddd; padding: 0.5rem;">
                             <% if (request.requestHash) { %>
-                                <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request</button>
+                                <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request</button>
                             <% } %>
                             <% if (request.responseHash) { %>
-                                <button onclick="downloadFile('<%= request.responseHash %>')" class="btn">Download Response</button>
+                                <button onclick="downloadFile('<%= request.responseHash %>', '<%= (request.responseFilename || 'response') %>')" class="btn">Download Response</button>
                             <% } %>
                         </td>
                     </tr>

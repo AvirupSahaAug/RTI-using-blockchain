@@ -12,7 +12,7 @@
                 <p><strong>Client ID:</strong> <%= request.clientId %></p>
                 <p><strong>Description:</strong> <%= request.description %></p>
                 <% if (request.requestHash) { %>
-                    <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request</button>
+                    <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request</button>
                 <% } %>
                 
                 <form id="assignForm-<%= request.id %>" style="margin-top: 1rem;">
@@ -59,7 +59,7 @@
                 <p><strong>Client ID:</strong> <%= request.clientId %></p>
                 <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId %></p>
                 <% if (request.responseHash) { %>
-                    <button onclick="downloadFile('<%= request.responseHash %>')" class="btn">Download Response</button>
+                    <button onclick="downloadFile('<%= request.responseHash %>', '<%= (request.responseFilename || 'response') %>')" class="btn">Download Response</button>
                 <% } %>
             </div>
             <% }); %>

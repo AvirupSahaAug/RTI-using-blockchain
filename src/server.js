@@ -139,7 +139,7 @@ app.post('/client/request', upload.single('document'), async (req, res) => {
             description
         );
         // store in DB mirror
-        dbAddRequest({ id: result.events?.RequestCreated?.returnValues?.requestId || Date.now(), clientId: req.session.user.id, description, requestHash: ipfsHash, status: '0' });
+        dbAddRequest({ id: result.events?.RequestCreated?.returnValues?.requestId || Date.now(), clientId: req.session.user.id, description, requestHash: ipfsHash, requestFilename: file.originalname, status: '0' });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {
@@ -261,7 +261,7 @@ app.post('/officer/response', upload.single('document'), async (req, res) => {
             req.session.user.id,
             ipfsHash
         );
-        dbUpdateRequest(requestId, { responseHash: ipfsHash, status: '2' });
+        dbUpdateRequest(requestId, { responseHash: ipfsHash, responseFilename: file.originalname, status: '2' });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {
@@ -273,9 +273,19 @@ app.post('/officer/response', upload.single('document'), async (req, res) => {
 app.get('/download/:hash', async (req, res) => {
     try {
         const fileBuffer = await ipfsService.getFile(req.params.hash);
-        
+        // Try to resolve filename from DB mirror or query param
+        let filename = req.query.filename;
+        if (!filename) {
+            const match = listRequestsBy(r => r.requestHash === req.params.hash || r.responseHash === req.params.hash)[0];
+            if (match) {
+                if (match.requestHash === req.params.hash && match.requestFilename) filename = match.requestFilename;
+                if (match.responseHash === req.params.hash && match.responseFilename) filename = match.responseFilename;
+            }
+        }
+        if (!filename) filename = 'document';
+
         // Set appropriate headers
-        res.setHeader('Content-Disposition', 'attachment; filename="document"');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-Type', 'application/octet-stream');
         
         res.send(fileBuffer);

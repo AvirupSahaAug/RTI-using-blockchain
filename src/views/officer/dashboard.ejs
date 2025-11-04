@@ -11,7 +11,7 @@
                 <p><strong>Description:</strong> <%= request.description %></p>
                 
                 <% if (request.requestHash) { %>
-                    <button onclick="downloadFile('<%= request.requestHash %>')" class="btn">Download Request Document</button>
+                    <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request Document</button>
                 <% } %>
                 
                 <form id="responseForm-<%= request.id %>" action="/officer/response" enctype="multipart/form-data" style="margin-top: 1rem;">

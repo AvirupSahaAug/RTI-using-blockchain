@@ -23,8 +23,9 @@
             }
         }
         
-        function downloadFile(ipfsHash) {
-            window.open('/download/' + ipfsHash, '_blank');
+        function downloadFile(ipfsHash, filename) {
+            const url = '/download/' + ipfsHash + (filename ? ('?filename=' + encodeURIComponent(filename)) : '');
+            window.open(url, '_blank');
         }
     </script>
 </body>
