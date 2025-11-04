@@ -27,6 +27,9 @@
                         <th style="border: 1px solid #ddd; padding: 0.5rem;">ID</th>
                         <th style="border: 1px solid #ddd; padding: 0.5rem;">Description</th>
                         <th style="border: 1px solid #ddd; padding: 0.5rem;">Status</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Created</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Assigned</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Responded</th>
                         <th style="border: 1px solid #ddd; padding: 0.5rem;">Actions</th>
                     </tr>
                 </thead>
@@ -42,6 +45,9 @@
                                 request.status === '2' ? 'Responded' : 'Completed'
                             %>
                         </td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= request.createdAt ? new Date(Number(request.createdAt)).toLocaleString() : '—' %></td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= request.assignedAt ? new Date(Number(request.assignedAt)).toLocaleString() : '—' %></td>
+                        <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= request.respondedAt ? new Date(Number(request.respondedAt)).toLocaleString() : '—' %></td>
                         <td style="border: 1px solid #ddd; padding: 0.5rem;">
                             <% if (request.requestHash) { %>
                                 <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request</button>

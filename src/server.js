@@ -139,7 +139,7 @@ app.post('/client/request', upload.single('document'), async (req, res) => {
             description
         );
         // store in DB mirror
-        dbAddRequest({ id: result.events?.RequestCreated?.returnValues?.requestId || Date.now(), clientId: req.session.user.id, description, requestHash: ipfsHash, requestFilename: file.originalname, status: '0' });
+        dbAddRequest({ id: result.events?.RequestCreated?.returnValues?.requestId || Date.now(), clientId: req.session.user.id, description, requestHash: ipfsHash, requestFilename: file.originalname, status: '0', createdAt: Date.now() });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {
@@ -155,8 +155,12 @@ app.get('/admin/dashboard', async (req, res) => {
     
     try {
         const pendingRequests = listRequestsBy(r => r.status === '0');
-        const assignedRequests = listRequestsBy(r => r.status === '1');
+        const allAssigned = listRequestsBy(r => r.status === '1');
         const respondedRequests = listRequestsBy(r => r.status === '2');
+        const nowMs = Date.now();
+        const fiveMinutesMs = 5 * 60 * 1000;
+        const overdueAssignedRequests = allAssigned.filter(r => r.assignedAt && (nowMs - Number(r.assignedAt)) > fiveMinutesMs);
+        const assignedRequests = allAssigned.filter(r => !r.assignedAt || (nowMs - Number(r.assignedAt)) <= fiveMinutesMs);
         const officers = require('./shared/db').listRequestsBy ? null : null;
         // Build officer list from DB users
         const db = require('fs').existsSync(require('path').join(__dirname, '..', 'data', 'db.json'))
@@ -169,6 +173,7 @@ app.get('/admin/dashboard', async (req, res) => {
             pendingRequests,
             assignedRequests,
             respondedRequests,
+            overdueAssignedRequests,
             officerUsers
         });
     } catch (error) {
@@ -177,6 +182,8 @@ app.get('/admin/dashboard', async (req, res) => {
             pendingRequests: [],
             assignedRequests: [],
             respondedRequests: [],
+            overdueAssignedRequests: [],
+            officerUsers: [],
             error: error.message
         });
     }
@@ -198,7 +205,7 @@ app.post('/admin/assign', async (req, res) => {
             requestId,
             officerUserId
         );
-        dbUpdateRequest(requestId, { status: '1', assignedOfficerUserId: officerUserId });
+        dbUpdateRequest(requestId, { status: '1', assignedOfficerUserId: officerUserId, assignedAt: Date.now() });
         
         res.json({ success: true, tx: result.transactionHash });
     } catch (error) {
@@ -261,7 +268,7 @@ app.post('/officer/response', upload.single('document'), async (req, res) => {
             req.session.user.id,
             ipfsHash
         );
-        dbUpdateRequest(requestId, { responseHash: ipfsHash, responseFilename: file.originalname, status: '2' });
+        dbUpdateRequest(requestId, { responseHash: ipfsHash, responseFilename: file.originalname, status: '2', respondedAt: Date.now() });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {

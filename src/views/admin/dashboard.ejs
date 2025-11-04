@@ -11,6 +11,7 @@
                 <p><strong>Request ID:</strong> <%= request.id %></p>
                 <p><strong>Client ID:</strong> <%= request.clientId %></p>
                 <p><strong>Description:</strong> <%= request.description %></p>
+                <p><strong>Created:</strong> <%= request.createdAt ? new Date(Number(request.createdAt)).toLocaleString() : '—' %></p>
                 <% if (request.requestHash) { %>
                     <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request</button>
                 <% } %>
@@ -43,6 +44,7 @@
                 <p><strong>Request ID:</strong> <%= request.id %></p>
                 <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId || '—' %></p>
                 <p><strong>Description:</strong> <%= request.description %></p>
+                <p><strong>Assigned:</strong> <%= request.assignedAt ? new Date(Number(request.assignedAt)).toLocaleString() : '—' %></p>
             </div>
             <% }); %>
         <% } else { %>
@@ -51,6 +53,23 @@
     </div>
     
     <div class="card">
+        <h3>Overdue (Assigned > 5 minutes without response)</h3>
+        <% if (overdueAssignedRequests && overdueAssignedRequests.length > 0) { %>
+            <% overdueAssignedRequests.forEach(request => { %>
+            <div style="border: 1px solid #f39c12; padding: 1rem; margin: 0.5rem 0; background: #fffaf2;">
+                <p><strong>Request ID:</strong> <%= request.id %></p>
+                <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId || '—' %></p>
+                <p><strong>Description:</strong> <%= request.description %></p>
+                <p><strong>Assigned:</strong> <%= request.assignedAt ? new Date(Number(request.assignedAt)).toLocaleString() : '—' %></p>
+                <p><strong>Status:</strong> Overdue</p>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No overdue items.</p>
+        <% } %>
+    </div>
+
+    <div class="card">
         <h3>Responded Requests</h3>
         <% if (respondedRequests && respondedRequests.length > 0) { %>
             <% respondedRequests.forEach(request => { %>
@@ -58,6 +77,7 @@
                 <p><strong>Request ID:</strong> <%= request.id %></p>
                 <p><strong>Client ID:</strong> <%= request.clientId %></p>
                 <p><strong>Officer ID:</strong> <%= request.assignedOfficerUserId %></p>
+                <p><strong>Responded:</strong> <%= request.respondedAt ? new Date(Number(request.respondedAt)).toLocaleString() : '—' %></p>
                 <% if (request.responseHash) { %>
                     <button onclick="downloadFile('<%= request.responseHash %>', '<%= (request.responseFilename || 'response') %>')" class="btn">Download Response</button>
                 <% } %>

@@ -9,6 +9,8 @@
                 <p><strong>Request ID:</strong> <%= request.id %></p>
                 <p><strong>Client ID:</strong> <%= request.clientId %></p>
                 <p><strong>Description:</strong> <%= request.description %></p>
+                <p><strong>Created:</strong> <%= request.createdAt ? new Date(Number(request.createdAt)).toLocaleString() : '—' %></p>
+                <p><strong>Assigned:</strong> <%= request.assignedAt ? new Date(Number(request.assignedAt)).toLocaleString() : '—' %></p>
                 
                 <% if (request.requestHash) { %>
                     <button onclick="downloadFile('<%= request.requestHash %>', '<%= (request.requestFilename || 'request') %>')" class="btn">Download Request Document</button>
