@@ -1,0 +1,47 @@
+{
+  "request": [
+    {
+      "requestId": "1762415186928",
+      "clientUserId": "U-25f12eeb",
+      "startTime": 1762415186636,
+      "ipfsStart": 1762415186636,
+      "ipfsEnd": 1762415186837,
+      "chainStart": 1762415186837,
+      "chainEnd": 1762415186928,
+      "endTime": 1762415186929,
+      "ipfsMs": 201,
+      "chainMs": 91,
+      "totalMs": 293,
+      "ipfsHash": "QmPMAS9Q4VPrP66DGeR86Jez1NXo5wzUNwhqu3N4jxXhMp",
+      "txHash": "0x12288bd0507ccbf799fbf1608d1efddc3dce450149f27da76ba15cce9b6a2143"
+    }
+  ],
+  "assignment": [
+    {
+      "requestId": "1762415186928",
+      "adminUserId": "U-3074b656",
+      "officerUserId": "U-c1adbf26",
+      "startTime": 1762415239970,
+      "endTime": 1762415240020,
+      "totalMs": 50,
+      "txHash": "0x7a5e253fd19dad41840d7ed0969ed469de6fa79fbdffdcef009b3ef08fa4f43b"
+    }
+  ],
+  "response": [
+    {
+      "requestId": "1762415186928",
+      "officerUserId": "U-c1adbf26",
+      "startTime": 1762415288735,
+      "ipfsStart": 1762415288735,
+      "ipfsEnd": 1762415288777,
+      "chainStart": 1762415288777,
+      "chainEnd": 1762415288801,
+      "endTime": 1762415288803,
+      "ipfsMs": 42,
+      "chainMs": 24,
+      "totalMs": 68,
+      "ipfsHash": "QmNy2wUu5HNcvZkfAgCqQszZiPoTkPAkwhozjr46WUkeUf",
+      "txHash": "0xc201f10a94203142922e580a3c308757b878a2f22b95c36629932a267eb93ad1"
+    }
+  ]
+}

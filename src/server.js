@@ -6,6 +6,7 @@ const Web3 = require('web3');
 const RTISystem = require('./shared/contracts/RTISystem.json');
 const IPFSService = require('./shared/ipfs');
 const AccountManager = require('./shared/accounts');
+const { appendRequestTiming, appendAssignmentTiming, appendResponseTiming } = require('./shared/timings');
 const readline = require('readline');
 const { createUser, findUserById, verifySigninKey, addRequest: dbAddRequest, updateRequest: dbUpdateRequest, listRequestsBy } = require('./shared/db');
 
@@ -122,6 +123,7 @@ app.post('/client/request', upload.single('document'), async (req, res) => {
     }
     
     try {
+        const overallStart = Date.now();
         const { description } = req.body;
         const file = req.file;
         
@@ -130,16 +132,39 @@ app.post('/client/request', upload.single('document'), async (req, res) => {
         }
         
         // Upload to IPFS
+        const ipfsStart = Date.now();
         const ipfsHash = await ipfsService.addFile(file.buffer);
+        const ipfsEnd = Date.now();
         
         // Create request on blockchain
+        const chainStart = Date.now();
         const result = await createRTIRequest(
             req.session.user.id,
             ipfsHash,
             description
         );
+        const chainEnd = Date.now();
         // store in DB mirror
-        dbAddRequest({ id: result.events?.RequestCreated?.returnValues?.requestId || Date.now(), clientId: req.session.user.id, description, requestHash: ipfsHash, requestFilename: file.originalname, status: '0', createdAt: Date.now() });
+        const assignedRequestId = result.events?.RequestCreated?.returnValues?.requestId || Date.now();
+        dbAddRequest({ id: assignedRequestId, clientId: req.session.user.id, description, requestHash: ipfsHash, requestFilename: file.originalname, status: '0', createdAt: Date.now() });
+        const overallEnd = Date.now();
+
+        // Append timing record for request flow
+        appendRequestTiming({
+            requestId: String(assignedRequestId),
+            clientUserId: req.session.user.id,
+            startTime: overallStart,
+            ipfsStart,
+            ipfsEnd,
+            chainStart,
+            chainEnd,
+            endTime: overallEnd,
+            ipfsMs: ipfsEnd - ipfsStart,
+            chainMs: chainEnd - chainStart,
+            totalMs: overallEnd - overallStart,
+            ipfsHash,
+            txHash: result.transactionHash || ''
+        });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {
@@ -195,6 +220,7 @@ app.post('/admin/assign', async (req, res) => {
     }
     
     try {
+        const overallStart = Date.now();
         const { requestId, officerUserId } = req.body;
         const officer = findUserById(officerUserId);
         if (!officer || officer.role !== 'officer') {
@@ -206,6 +232,17 @@ app.post('/admin/assign', async (req, res) => {
             officerUserId
         );
         dbUpdateRequest(requestId, { status: '1', assignedOfficerUserId: officerUserId, assignedAt: Date.now() });
+        const overallEnd = Date.now();
+
+        appendAssignmentTiming({
+            requestId: String(requestId),
+            adminUserId: req.session.user.id,
+            officerUserId: String(officerUserId),
+            startTime: overallStart,
+            endTime: overallEnd,
+            totalMs: overallEnd - overallStart,
+            txHash: result.transactionHash || ''
+        });
         
         res.json({ success: true, tx: result.transactionHash });
     } catch (error) {
@@ -252,6 +289,7 @@ app.post('/officer/response', upload.single('document'), async (req, res) => {
     }
     
     try {
+        const overallStart = Date.now();
         const { requestId } = req.body;
         const file = req.file;
         
@@ -260,15 +298,36 @@ app.post('/officer/response', upload.single('document'), async (req, res) => {
         }
         
         // Upload to IPFS
+        const ipfsStart = Date.now();
         const ipfsHash = await ipfsService.addFile(file.buffer);
+        const ipfsEnd = Date.now();
         
         // Submit response on blockchain
+        const chainStart = Date.now();
         const result = await submitResponse(
             requestId,
             req.session.user.id,
             ipfsHash
         );
+        const chainEnd = Date.now();
         dbUpdateRequest(requestId, { responseHash: ipfsHash, responseFilename: file.originalname, status: '2', respondedAt: Date.now() });
+        const overallEnd = Date.now();
+
+        appendResponseTiming({
+            requestId: String(requestId),
+            officerUserId: req.session.user.id,
+            startTime: overallStart,
+            ipfsStart,
+            ipfsEnd,
+            chainStart,
+            chainEnd,
+            endTime: overallEnd,
+            ipfsMs: ipfsEnd - ipfsStart,
+            chainMs: chainEnd - chainStart,
+            totalMs: overallEnd - overallStart,
+            ipfsHash,
+            txHash: result.transactionHash || ''
+        });
         
         res.json({ success: true, hash: ipfsHash, tx: result.transactionHash });
     } catch (error) {
