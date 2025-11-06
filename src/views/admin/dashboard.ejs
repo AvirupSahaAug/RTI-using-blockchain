@@ -98,7 +98,10 @@
                 <p><strong>Client ID:</strong> <%= c.clientUserId %></p>
                 <p><strong>Officer ID:</strong> <%= c.officerUserId %></p>
                 <p><strong>Complaint:</strong> <%= c.text %></p>
-                <p><strong>Resolution:</strong> <%= c.resolutionText || '—' %></p>
+                <p><strong>Resolution:</strong> <%= c.resolutionHash ? 'Uploaded' : '—' %></p>
+                <% if (c.resolutionHash) { %>
+                    <button onclick="downloadFile('<%= c.resolutionHash %>', '<%= (c.resolutionFilename || 'resolution') %>')" class="btn">Download Resolution</button>
+                <% } %>
                 <% const req = (respondedRequests || []).find(r => String(r.id) === String(c.requestId)); %>
                 <% if (req && req.requestHash) { %>
                     <button onclick="downloadFile('<%= req.requestHash %>', '<%= (req.requestFilename || 'request') %>')" class="btn">Download Request</button>

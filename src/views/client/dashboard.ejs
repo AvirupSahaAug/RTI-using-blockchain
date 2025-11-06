@@ -70,7 +70,10 @@
                                     <div style="margin-top: 0.5rem; border-top: 1px dashed #ddd; padding-top: 0.5rem;">
                                         <p><strong>Complaint ID:</strong> <%= existingComplaint.id %></p>
                                         <p><strong>Complaint:</strong> <%= existingComplaint.text %></p>
-                                        <p><strong>Resolution:</strong> <%= existingComplaint.resolutionText || '—' %></p>
+                                        <p><strong>Resolution:</strong> <%= existingComplaint.resolutionHash ? 'Uploaded' : '—' %></p>
+                                        <% if (existingComplaint.resolutionHash) { %>
+                                            <button class="btn" onclick="downloadFile('<%= existingComplaint.resolutionHash %>', '<%= (existingComplaint.resolutionFilename || 'resolution') %>')">Download Resolution</button>
+                                        <% } %>
                                         <% if (!existingComplaint.resolvedByUser) { %>
                                             <button type="button" class="btn" onclick="markComplaintResolved('<%= existingComplaint.id %>')">Mark Resolved</button>
                                         <% } %>

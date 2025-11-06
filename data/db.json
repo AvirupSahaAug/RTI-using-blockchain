@@ -88,6 +88,14 @@
       "officerUserId": "U-c1adbf26",
       "complaintCreatedAt": 1762415886037,
       "resolvedAt": 1762416120208
+    },
+    {
+      "id": "C-3a6bb150",
+      "requestId": "1762415186928",
+      "clientUserId": "U-25f12eeb",
+      "officerUserId": "U-c1adbf26",
+      "complaintCreatedAt": 1762416588563,
+      "resolvedAt": 1762416718770
     }
   ]
 }

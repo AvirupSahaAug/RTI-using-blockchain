@@ -423,17 +423,22 @@ app.post('/admin/complaints/notify', async (req, res) => {
     }
 });
 
-app.post('/officer/complaints/resolve', async (req, res) => {
+app.post('/officer/complaints/resolve', upload.single('document'), async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'officer') {
         return res.status(403).json({ error: 'Unauthorized' });
     }
     try {
-        const { complaintId, resolutionText } = req.body;
+        const { complaintId } = req.body;
+        const file = req.file;
         const comp = listComplaintsBy(c => String(c.id) === String(complaintId))[0];
         if (!comp || comp.officerUserId !== req.session.user.id) {
             return res.status(400).json({ error: 'Invalid complaint' });
         }
-        updateComplaint(complaintId, { resolutionText: String(resolutionText || '').slice(0, 5000), resolutionAt: Date.now() });
+        if (!file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const ipfsHash = await ipfsService.addFile(file.buffer);
+        updateComplaint(complaintId, { resolutionHash: ipfsHash, resolutionFilename: file.originalname, resolutionAt: Date.now() });
         res.json({ success: true });
     } catch (e) {
         res.status(500).json({ error: e.message });

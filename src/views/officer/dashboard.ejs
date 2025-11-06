@@ -40,13 +40,16 @@
                 <p><strong>Request ID:</strong> <%= c.requestId %></p>
                 <p><strong>Client ID:</strong> <%= c.clientUserId %></p>
                 <p><strong>Complaint:</strong> <%= c.text %></p>
-                <p><strong>Resolution:</strong> <%= c.resolutionText || '—' %></p>
-                <% if (c.notified && !c.resolutionText) { %>
-                    <form id="resolveForm-<%= c.id %>" style="margin-top: 0.5rem;">
+                <p><strong>Resolution:</strong> <%= c.resolutionHash ? 'Uploaded' : '—' %></p>
+                <% if (c.resolutionHash) { %>
+                    <button class="btn" onclick="downloadFile('<%= c.resolutionHash %>', '<%= (c.resolutionFilename || 'resolution') %>')">Download Resolution</button>
+                <% } %>
+                <% if (c.notified && !c.resolutionHash) { %>
+                    <form id="resolveForm-<%= c.id %>" action="/officer/complaints/resolve" enctype="multipart/form-data" style="margin-top: 0.5rem;">
                         <input type="hidden" name="complaintId" value="<%= c.id %>">
                         <div class="form-group">
-                            <label>Resolution:</label>
-                            <input type="text" name="resolutionText" placeholder="Provide resolution" required style="width: 100%;">
+                            <label>Resolution File:</label>
+                            <input type="file" name="document" required>
                         </div>
                         <button type="button" class="btn" onclick="submitResolution('<%= c.id %>')">Send Resolution</button>
                     </form>
@@ -68,22 +71,10 @@
 
         async function submitResolution(complaintId) {
             const form = document.getElementById('resolveForm-' + complaintId);
-            const payload = {
-                complaintId: complaintId,
-                resolutionText: form.querySelector('input[name="resolutionText"]').value
-            };
-            const res = await fetch('/officer/complaints/resolve', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await res.json();
-            if (result.success) {
+            await submitFormWithFile(form, function() {
                 alert('Resolution sent');
                 location.reload();
-            } else {
-                alert('Error: ' + (result.error || 'Failed'));
-            }
+            });
         }
     </script>
 <%- include('../../partials/footer') %>
