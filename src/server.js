@@ -8,7 +8,7 @@ const IPFSService = require('./shared/ipfs');
 const AccountManager = require('./shared/accounts');
 const { appendRequestTiming, appendAssignmentTiming, appendResponseTiming } = require('./shared/timings');
 const readline = require('readline');
-const { createUser, findUserById, verifySigninKey, addRequest: dbAddRequest, updateRequest: dbUpdateRequest, listRequestsBy } = require('./shared/db');
+const { createUser, findUserById, verifySigninKey, addRequest: dbAddRequest, updateRequest: dbUpdateRequest, listRequestsBy, generateComplaintId, addComplaint, updateComplaint, listComplaintsBy, finalizeComplaintIfResolved } = require('./shared/db');
 
 const app = express();
 const port = 3000;
@@ -110,9 +110,10 @@ app.get('/client/dashboard', async (req, res) => {
     try {
         // Get user's requests
         const requests = listRequestsBy(r => r.clientId === req.session.user.id);
-        res.render('client/dashboard', { user: req.session.user, requests });
+        const myComplaints = listComplaintsBy(c => c.clientUserId === req.session.user.id);
+        res.render('client/dashboard', { user: req.session.user, requests, complaints: myComplaints });
     } catch (error) {
-        res.render('client/dashboard', { user: req.session.user, requests: [], error: error.message });
+        res.render('client/dashboard', { user: req.session.user, requests: [], complaints: [], error: error.message });
     }
 });
 
@@ -193,13 +194,20 @@ app.get('/admin/dashboard', async (req, res) => {
             : { users: [] };
         const officerUsers = (db.users || []).filter(u => u.role === 'officer');
 
+        const complaints = listComplaintsBy(() => true);
+        const resolvedComplaints = (require('fs').existsSync(require('path').join(__dirname, '..', 'data', 'db.json'))
+            ? JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'db.json'), 'utf8'))
+            : { resolvedComplaints: [] }).resolvedComplaints || [];
+
         res.render('admin/dashboard', {
             user: req.session.user,
             pendingRequests,
             assignedRequests,
             respondedRequests,
             overdueAssignedRequests,
-            officerUsers
+            officerUsers,
+            complaints,
+            resolvedComplaints
         });
     } catch (error) {
         res.render('admin/dashboard', {
@@ -209,6 +217,8 @@ app.get('/admin/dashboard', async (req, res) => {
             respondedRequests: [],
             overdueAssignedRequests: [],
             officerUsers: [],
+            complaints: [],
+            resolvedComplaints: [],
             error: error.message
         });
     }
@@ -277,9 +287,10 @@ app.get('/officer/dashboard', async (req, res) => {
     
     try {
         const assignedRequests = listRequestsBy(r => r.assignedOfficerUserId === req.session.user.id && r.status === '1');
-        res.render('officer/dashboard', { user: req.session.user, requests: assignedRequests });
+        const myComplaints = listComplaintsBy(c => c.officerUserId === req.session.user.id);
+        res.render('officer/dashboard', { user: req.session.user, requests: assignedRequests, complaints: myComplaints });
     } catch (error) {
-        res.render('officer/dashboard', { user: req.session.user, requests: [], error: error.message });
+        res.render('officer/dashboard', { user: req.session.user, requests: [], complaints: [], error: error.message });
     }
 });
 
@@ -357,6 +368,107 @@ app.get('/download/:hash', async (req, res) => {
         res.send(fileBuffer);
     } catch (error) {
         res.status(500).send('Error downloading file');
+    }
+});
+
+// Complaints routes
+app.post('/client/complaint', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'client') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+        const { requestId, text } = req.body;
+        const request = listRequestsBy(r => String(r.id) === String(requestId))[0];
+        if (!request || request.clientId !== req.session.user.id) {
+            return res.status(400).json({ error: 'Invalid request' });
+        }
+        if (!request.responseHash) {
+            return res.status(400).json({ error: 'Response not delivered yet' });
+        }
+        const existing = listComplaintsBy(c => String(c.requestId) === String(requestId));
+        if (existing.length > 0) {
+            return res.status(400).json({ error: 'Complaint already exists for this request' });
+        }
+        const complaint = {
+            id: generateComplaintId(),
+            requestId: String(requestId),
+            clientUserId: req.session.user.id,
+            officerUserId: request.assignedOfficerUserId || '',
+            text: String(text || '').slice(0, 5000),
+            createdAt: Date.now(),
+            notified: false,
+            notifiedAt: null,
+            resolutionText: '',
+            resolutionAt: null,
+            resolvedByUser: false,
+            resolvedByAdmin: false
+        };
+        addComplaint(complaint);
+        res.json({ success: true, complaintId: complaint.id });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/admin/complaints/notify', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+        const { complaintId } = req.body;
+        updateComplaint(complaintId, { notified: true, notifiedAt: Date.now() });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/officer/complaints/resolve', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'officer') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+        const { complaintId, resolutionText } = req.body;
+        const comp = listComplaintsBy(c => String(c.id) === String(complaintId))[0];
+        if (!comp || comp.officerUserId !== req.session.user.id) {
+            return res.status(400).json({ error: 'Invalid complaint' });
+        }
+        updateComplaint(complaintId, { resolutionText: String(resolutionText || '').slice(0, 5000), resolutionAt: Date.now() });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/admin/complaints/mark-resolved', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+        const { complaintId } = req.body;
+        updateComplaint(complaintId, { resolvedByAdmin: true });
+        finalizeComplaintIfResolved(complaintId);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/client/complaints/mark-resolved', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'client') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+        const { complaintId } = req.body;
+        const comp = listComplaintsBy(c => String(c.id) === String(complaintId))[0];
+        if (!comp || comp.clientUserId !== req.session.user.id) {
+            return res.status(400).json({ error: 'Invalid complaint' });
+        }
+        updateComplaint(complaintId, { resolvedByUser: true });
+        finalizeComplaintIfResolved(complaintId);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
     }
 });
 

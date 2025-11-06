@@ -87,6 +87,71 @@
             <p>No responded requests.</p>
         <% } %>
     </div>
+
+    <div class="card">
+        <h3>Active Complaints</h3>
+        <% if (complaints && complaints.length > 0) { %>
+            <% complaints.forEach(c => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Complaint ID:</strong> <%= c.id %></p>
+                <p><strong>Request ID:</strong> <%= c.requestId %></p>
+                <p><strong>Client ID:</strong> <%= c.clientUserId %></p>
+                <p><strong>Officer ID:</strong> <%= c.officerUserId %></p>
+                <p><strong>Complaint:</strong> <%= c.text %></p>
+                <p><strong>Resolution:</strong> <%= c.resolutionText || '—' %></p>
+                <% const req = (respondedRequests || []).find(r => String(r.id) === String(c.requestId)); %>
+                <% if (req && req.requestHash) { %>
+                    <button onclick="downloadFile('<%= req.requestHash %>', '<%= (req.requestFilename || 'request') %>')" class="btn">Download Request</button>
+                <% } %>
+                <% if (req && req.responseHash) { %>
+                    <button onclick="downloadFile('<%= req.responseHash %>', '<%= (req.responseFilename || 'response') %>')" class="btn">Download Response</button>
+                <% } %>
+                <div style="margin-top: 0.5rem;">
+                    <% if (!c.notified) { %>
+                        <button class="btn" onclick="notifyOfficer('<%= c.id %>')">Notify Officer</button>
+                    <% } else { %>
+                        <span>Notified at: <%= c.notifiedAt ? new Date(Number(c.notifiedAt)).toLocaleString() : '—' %></span>
+                    <% } %>
+                    <% if (!c.resolvedByAdmin) { %>
+                        <button class="btn" onclick="markAdminResolved('<%= c.id %>')">Mark Resolved</button>
+                    <% } %>
+                </div>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <p>No active complaints.</p>
+        <% } %>
+    </div>
+
+    <div class="card">
+        <h3>Resolved Complaints</h3>
+        <% if (resolvedComplaints && resolvedComplaints.length > 0) { %>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Complaint ID</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Request ID</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Client</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Officer</th>
+                        <th style="border: 1px solid #ddd; padding: 0.5rem;">Resolved At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% resolvedComplaints.forEach(rc => { %>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= rc.id %></td>
+                            <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= rc.requestId %></td>
+                            <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= rc.clientUserId %></td>
+                            <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= rc.officerUserId %></td>
+                            <td style="border: 1px solid #ddd; padding: 0.5rem;"><%= rc.resolvedAt ? new Date(Number(rc.resolvedAt)).toLocaleString() : '—' %></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p>No resolved complaints.</p>
+        <% } %>
+    </div>
     
     <script>
         async function assignRequest(requestId) {
@@ -112,6 +177,36 @@
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
+            }
+        }
+
+        async function notifyOfficer(complaintId) {
+            const res = await fetch('/admin/complaints/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaintId })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Officer notified');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Failed'));
+            }
+        }
+
+        async function markAdminResolved(complaintId) {
+            const res = await fetch('/admin/complaints/mark-resolved', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaintId })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Marked resolved');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Failed'));
             }
         }
     </script>

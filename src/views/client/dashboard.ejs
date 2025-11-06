@@ -54,6 +54,28 @@
                             <% } %>
                             <% if (request.responseHash) { %>
                                 <button onclick="downloadFile('<%= request.responseHash %>', '<%= (request.responseFilename || 'response') %>')" class="btn">Download Response</button>
+                                <% const existingComplaint = (complaints || []).find(c => String(c.requestId) === String(request.id)); %>
+                                <% if (!existingComplaint) { %>
+                                    <div style="margin-top: 0.5rem;">
+                                        <form id="complaintForm-<%= request.id %>">
+                                            <input type="hidden" name="requestId" value="<%= request.id %>">
+                                            <div class="form-group">
+                                                <label>Raise Complaint:</label>
+                                                <input type="text" name="text" placeholder="Describe the issue" required style="width: 100%;">
+                                            </div>
+                                            <button type="button" class="btn" onclick="submitComplaint(<%= request.id %>)">Submit Complaint</button>
+                                        </form>
+                                    </div>
+                                <% } else { %>
+                                    <div style="margin-top: 0.5rem; border-top: 1px dashed #ddd; padding-top: 0.5rem;">
+                                        <p><strong>Complaint ID:</strong> <%= existingComplaint.id %></p>
+                                        <p><strong>Complaint:</strong> <%= existingComplaint.text %></p>
+                                        <p><strong>Resolution:</strong> <%= existingComplaint.resolutionText || '—' %></p>
+                                        <% if (!existingComplaint.resolvedByUser) { %>
+                                            <button type="button" class="btn" onclick="markComplaintResolved('<%= existingComplaint.id %>')">Mark Resolved</button>
+                                        <% } %>
+                                    </div>
+                                <% } %>
                             <% } %>
                         </td>
                     </tr>
@@ -72,6 +94,41 @@
                 form.reset();
                 location.reload();
             });
+        }
+
+        async function submitComplaint(requestId) {
+            const form = document.getElementById('complaintForm-' + requestId);
+            const payload = {
+                requestId: form.querySelector('input[name="requestId"]').value,
+                text: form.querySelector('input[name="text"]').value
+            };
+            const res = await fetch('/client/complaint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Complaint submitted (ID: ' + result.complaintId + ')');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Failed'));
+            }
+        }
+
+        async function markComplaintResolved(complaintId) {
+            const res = await fetch('/client/complaints/mark-resolved', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaintId })
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Marked as resolved');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Failed'));
+            }
         }
     </script>
 <%- include('../../partials/footer') %>

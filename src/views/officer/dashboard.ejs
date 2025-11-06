@@ -31,12 +31,59 @@
         <% } %>
     </div>
     
+    <div class="card">
+        <h3>Complaints</h3>
+        <% if (complaints && complaints.length > 0) { %>
+            <% complaints.forEach(c => { %>
+            <div style="border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0;">
+                <p><strong>Complaint ID:</strong> <%= c.id %></p>
+                <p><strong>Request ID:</strong> <%= c.requestId %></p>
+                <p><strong>Client ID:</strong> <%= c.clientUserId %></p>
+                <p><strong>Complaint:</strong> <%= c.text %></p>
+                <p><strong>Resolution:</strong> <%= c.resolutionText || '—' %></p>
+                <% if (c.notified && !c.resolutionText) { %>
+                    <form id="resolveForm-<%= c.id %>" style="margin-top: 0.5rem;">
+                        <input type="hidden" name="complaintId" value="<%= c.id %>">
+                        <div class="form-group">
+                            <label>Resolution:</label>
+                            <input type="text" name="resolutionText" placeholder="Provide resolution" required style="width: 100%;">
+                        </div>
+                        <button type="button" class="btn" onclick="submitResolution('<%= c.id %>')">Send Resolution</button>
+                    </form>
+                <% } %>
+            </div>
+            <% }) %>
+        <% } else { %>
+            <p>No complaints.</p>
+        <% } %>
+    </div>
+    
     <script>
         async function submitResponse(requestId) {
             const form = document.getElementById('responseForm-' + requestId);
             await submitFormWithFile(form, function() {
                 location.reload();
             });
+        }
+
+        async function submitResolution(complaintId) {
+            const form = document.getElementById('resolveForm-' + complaintId);
+            const payload = {
+                complaintId: complaintId,
+                resolutionText: form.querySelector('input[name="resolutionText"]').value
+            };
+            const res = await fetch('/officer/complaints/resolve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (result.success) {
+                alert('Resolution sent');
+                location.reload();
+            } else {
+                alert('Error: ' + (result.error || 'Failed'));
+            }
         }
     </script>
 <%- include('../../partials/footer') %>

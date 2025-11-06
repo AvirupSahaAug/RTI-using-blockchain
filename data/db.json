@@ -78,5 +78,16 @@
       "responseFilename": "Avirup Saha  Research Intern Resume.docx",
       "respondedAt": 1762415288801
     }
+  ],
+  "complaints": [],
+  "resolvedComplaints": [
+    {
+      "id": "C-9957dedd",
+      "requestId": "1762415186928",
+      "clientUserId": "U-25f12eeb",
+      "officerUserId": "U-c1adbf26",
+      "complaintCreatedAt": 1762415886037,
+      "resolvedAt": 1762416120208
+    }
   ]
 }

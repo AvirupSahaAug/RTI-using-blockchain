@@ -10,7 +10,9 @@ function ensureDb() {
     if (!fs.existsSync(dbPath)) {
         const initial = {
             users: [], // { id, name, aadhaar, role, signinKeyHash }
-            requests: [] // mirror of on-chain requests for quick lookup
+            requests: [], // mirror of on-chain requests for quick lookup
+            complaints: [], // active complaints
+            resolvedComplaints: [] // archived minimal records
         };
         fs.writeFileSync(dbPath, JSON.stringify(initial, null, 2));
     }
@@ -19,7 +21,13 @@ function ensureDb() {
 function readDb() {
     ensureDb();
     const raw = fs.readFileSync(dbPath, 'utf8');
-    return JSON.parse(raw || '{}');
+    const parsed = JSON.parse(raw || '{}');
+    // Backfill missing arrays for older files
+    if (!parsed.users) parsed.users = [];
+    if (!parsed.requests) parsed.requests = [];
+    if (!parsed.complaints) parsed.complaints = [];
+    if (!parsed.resolvedComplaints) parsed.resolvedComplaints = [];
+    return parsed;
 }
 
 function writeDb(db) {
@@ -80,6 +88,58 @@ function listRequestsBy(predicate) {
     return db.requests.filter(predicate);
 }
 
+function generateComplaintId() {
+    return 'C-' + crypto.randomBytes(4).toString('hex');
+}
+
+function addComplaint(record) {
+    const db = readDb();
+    db.complaints.push(record);
+    writeDb(db);
+}
+
+function updateComplaint(id, updates) {
+    const db = readDb();
+    const c = db.complaints.find(x => String(x.id) === String(id));
+    if (c) {
+        Object.assign(c, updates);
+        writeDb(db);
+    }
+}
+
+function listComplaintsBy(predicate) {
+    const db = readDb();
+    return db.complaints.filter(predicate);
+}
+
+function addResolvedComplaint(record) {
+    const db = readDb();
+    db.resolvedComplaints.push(record);
+    writeDb(db);
+}
+
+function finalizeComplaintIfResolved(id) {
+    const db = readDb();
+    const idx = db.complaints.findIndex(x => String(x.id) === String(id));
+    if (idx === -1) return false;
+    const c = db.complaints[idx];
+    if (c.resolvedByUser && c.resolvedByAdmin) {
+        const archived = {
+            id: c.id,
+            requestId: c.requestId,
+            clientUserId: c.clientUserId,
+            officerUserId: c.officerUserId,
+            complaintCreatedAt: c.createdAt,
+            resolvedAt: Date.now()
+        };
+        db.resolvedComplaints.push(archived);
+        db.complaints.splice(idx, 1);
+        writeDb(db);
+        return true;
+    }
+    return false;
+}
+
 module.exports = {
     createUser,
     findUserById,
@@ -87,6 +147,13 @@ module.exports = {
     addRequest,
     updateRequest,
     listRequestsBy,
+    // complaints
+    generateComplaintId,
+    addComplaint,
+    updateComplaint,
+    listComplaintsBy,
+    addResolvedComplaint,
+    finalizeComplaintIfResolved,
 };
 
 
